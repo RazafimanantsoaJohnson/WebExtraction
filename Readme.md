@@ -1,0 +1,1 @@
+The combination of a browser extension and a python backend to extract data from virtually any sources.

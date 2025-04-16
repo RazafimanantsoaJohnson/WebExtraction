@@ -88,7 +88,7 @@ async function logAPIRequest(requestDetail){
     let filter= browser.webRequest.filterResponseData(requestDetail.requestId);
 
     
-    showToDebug(`id: ${requestDetail.requestId} ,filter: ${JSON.stringify(filter)}`);
+    // showToDebug(`id: ${requestDetail.requestId} ,filter: ${JSON.stringify(filter)}`);
     
     filter.ondata= (event)=>{
       let decodedResponse= decoder.decode(event.data, {stream: true})
@@ -96,10 +96,11 @@ async function logAPIRequest(requestDetail){
         currentRequest.url= requestDetail.url; 
         currentRequest.data= decodedResponse;
         currentRequest.method= requestDetail.method;
-        showToDebug(decodedResponse);
+        // showToDebug(decodedResponse);
         filter.write(event.data);
 
         apiRequests.push(currentRequest);
+        createAndDisplayAPIRequests(currentRequest);
       };
       filter.onstop= (event)=>{
         filter.close();
@@ -114,14 +115,44 @@ async function logAPIRequest(requestDetail){
     urls: ["<all_urls>"]
   }, ["blocking"]);
   
-  showToDebug(JSON.stringify(apiRequests));
+  // showToDebug(JSON.stringify(apiRequests));
   
   //End To be sent to another file
+
+
+// To another file again
+  // Will create the API Request components in the list with the right classes and based on the "request" array
+  function createAndDisplayAPIRequests(requestObject){
+    let requestList= document.getElementById("request-list");
+    let requestComponent= document.createElement("div");
+    let requestMethod= document.createElement("div");
+    let requestUrl= document.createElement("div");
+    
+    requestComponent.classList.add("request-component");
+    requestComponent.classList.add("bg-secondary");
+    requestMethod.classList.add("request-method");
+    requestUrl.classList.add("request-url");
+
+    requestUrl.textContent= requestObject.url;
+    requestMethod.textContent= (requestObject.method).toUpperCase();
+    requestComponent.appendChild(requestMethod);
+    requestComponent.appendChild(requestUrl);
+    requestList.appendChild(requestComponent);
+
+    requestComponent.addEventListener("click" ,clickAPIRequest(requestObject.data));
+  }
+
+  function clickAPIRequest(textResponse){
+    let responseElement= document.getElementById("api-response");
+    responseElement.textContent= textResponse;
+  }
+
+//End to another file
   
 function showToDebug(message, type=1){
   if (type!=1){
     debugEl.style.color= "red";
   }
   debugEl.style.color= "gray";
-  debugEl.textContent= JSON.stringify(apiRequests);
+  debugEl.textContent= message; // JSON.stringify(apiRequests);
 }

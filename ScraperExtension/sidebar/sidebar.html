@@ -1,13 +1,32 @@
 <html>
     <head>
         <meta charset="UTF-8" />
-        <link type="stylesheet" href="sidebar.css" />
+        <link rel="stylesheet" href="sidebar.css" />
     </head>
     <body>
-        <h1>This is the beginning of the side bar</h1>
-        <p id="debugger" ></p>
-        <!-- <button id="BUTTON">Test Button for my boy Content</button> -->
-        <canvas id="navigationTree" style="width:100vw;height:60vh" > </canvas>
+        <div class="main-container bg-primary text-primary" >
+            <h2 id="title" >Requests</h2>
+            <div class="requests-container-outer" >
+                <div class="requests-list" id="request-list" >
+                    <div class="request-component bg-secondary" >
+                            <div class="request-method" >
+                                <p>GET</p>
+                            </div>
+                            <div class="request-url" >
+                                <p>https://developer.mozilla.org/api/v1/whoami</p>
+                            </div>
+                    </div>
+                </div>
+                <div class="response-body" id="api-response" >
+                    hello this is the response of the http requets you just clicked, make sure you follow me on Insta
+                    so i believe in you and in the fact that you will be scrollable when things get tough, I will always
+                    be here for you though, there is nothing to be worried about, I am a High agency person and I believe in me
+                </div>
+            </div>
+            <p id="debugger" ></p>
+            <!-- <button id="BUTTON">Test Button for my boy Content</button> -->
+            <!-- <canvas id="navigationTree" style="width:100vw;height:60vh" > </canvas> -->
+        </div>
     </body>
     <script src="sidebar.js" ></script>
 </html>

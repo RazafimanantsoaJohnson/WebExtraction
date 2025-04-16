@@ -1,5 +1,3 @@
-console.log("Is it not working");
-
 function getCurrentUrlBase(){
     let currentUrl= window.location.href;
     let urlObj= new URL(currentUrl);
@@ -51,17 +49,15 @@ function insertNewUrlInTrie(urlPathArray, urlTrie){
 }
 
 // end building trie.
-console.log(constructUrlTrie(getAllUrls(getCurrentUrlBase())));
+// console.log(constructUrlTrie(getAllUrls(getCurrentUrlBase())));
 
 
 async function main(){
-    // await browser.storage.session.setAccessLevel("TRUSTED_AND_UNTRUSTED_CONTEXTS");
-    // browser.storage.session.set(constructUrlTrie(getAllUrls(getCurrentUrlBase())));
-    await sessionStorage.setItem("browsingTrie",JSON.stringify(constructUrlTrie(getAllUrls(getCurrentUrlBase()))));
+
     browser.runtime.sendMessage({
         title: "UrlTrie", 
         data: constructUrlTrie(getAllUrls(getCurrentUrlBase()))
-    })
+    });
 }
 
 main();

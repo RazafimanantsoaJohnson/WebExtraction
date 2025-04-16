@@ -7,11 +7,11 @@
     "icons":{
         "48": "icons/filter_icon.png"
     },
-    "permissions":["<all_urls>", "scripting"],
+    "permissions":["<all_urls>", "scripting", "webRequest", "webRequestBlocking", "webRequestFilterResponse.serviceWorkerScript"],
     "content_scripts":[
         {
             "matches": ["<all_urls>"], 
-            "js": ["/content_scripts/main.js"]
+            "js": ["/content_scripts/main.js", "/content_scripts/capture_requests.js"]
         }
     ],
     "sidebar_action": {

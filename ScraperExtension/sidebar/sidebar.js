@@ -139,12 +139,15 @@ async function logAPIRequest(requestDetail){
     requestComponent.appendChild(requestUrl);
     requestList.appendChild(requestComponent);
 
-    requestComponent.addEventListener("click" ,clickAPIRequest(requestObject.data));
+    requestComponent.addEventListener("click" , function(e){
+      let responseElement= document.getElementById("api-response");
+      responseElement.textContent= requestObject.data;   
+      // This is supposed to work because of this function is the first class of another,
+      //  so it will get access to objects outside of itself because of closure
+    });
   }
 
-  function clickAPIRequest(textResponse){
-    let responseElement= document.getElementById("api-response");
-    responseElement.textContent= textResponse;
+  function clickAPIRequest(event){
   }
 
 //End to another file

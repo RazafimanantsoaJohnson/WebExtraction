@@ -7,7 +7,9 @@
     "icons":{
         "48": "icons/filter_icon.png"
     },
-    "permissions":["<all_urls>", "scripting", "webRequest", "webRequestBlocking", "webRequestFilterResponse.serviceWorkerScript"],
+    "permissions":["<all_urls>", "scripting", "webRequest", "webRequestBlocking", "webRequestFilterResponse.serviceWorkerScript",
+            "tabs", "host"
+        ],
     "content_scripts":[
         {
             "matches": ["<all_urls>"], 

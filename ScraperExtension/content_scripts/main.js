@@ -52,6 +52,11 @@ function insertNewUrlInTrie(urlPathArray, urlTrie){
 // console.log(constructUrlTrie(getAllUrls(getCurrentUrlBase())));
 
 
+browser.runtime.onMessage.addListener((message)=>{
+    window.location.href= "https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/tabs/query";
+})
+
+
 async function main(){
 
     browser.runtime.sendMessage({

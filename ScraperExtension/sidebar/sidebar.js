@@ -148,10 +148,11 @@ function createAndDisplayAPIRequests(requestObject, webSocketConnection){
 
     requestComponent.addEventListener("click" , function(e){
       let responseElement= document.getElementById("api-response");
-      responseElement.textContent= requestObject.data;   
-
-      // This is supposed to work because of this function is the first class of another,
-      //  so it will get access to objects outside of itself because of closure
+      responseElement.textContent= requestObject.data;  
+      
+      saveSelectedUrlToState(requestObject.url);
+      checkFlagStatus();
+      showToDebug(JSON.stringify(window.dataExtract));
       
       sendMessageToWS(requestObject.data, webSocketConnection);
       // test
@@ -162,13 +163,47 @@ function createAndDisplayAPIRequests(requestObject, webSocketConnection){
   }
 }
 
+function handleFlagClick(){
+  const flagButton= document.getElementById("flag-btn");
+  flagButton.addEventListener("click", flagURLRequest)
+}
+
+function checkFlagStatus(){
+  const flaggedUrls= window.dataExtract.flaggedUrls;
+  const currentSelectedUrl= window.dataExtract.selectedUrl;
+  if (flaggedUrls.length== 0){
+    return;
+  }
+  for(let i=0; i<flaggedUrls.length; i++){
+    if(flaggedUrls[i]== currentSelectedUrl){
+      updateFlagButton(true);
+      return;
+    }
+  }
+  updateFlagButton(false);
+}
+
+function updateFlagButton(isActive){
+  const flagButton= document.getElementById("flag-btn");
+  if(isActive){
+    flagButton.classList.remove("btn");
+    flagButton.classList.add("btn-active");
+  }else{
+    flagButton.classList.remove("btn-active");
+    flagButton.classList.add("btn");
+  }
+}
+
+function flagURLRequest(event){
+  window.dataExtract.flaggedUrls.push(window.dataExtract.selectedUrl);
+
+  showToDebug(JSON.stringify(window.dataExtract));
+}
+
 function saveSelectedUrlToState(urlLink){
   window.dataExtract.selectedUrl= urlLink;
 }
 
-function flagURLRequest(event){
-
-}
 
 //End to another file
 
@@ -179,7 +214,7 @@ function receiveWSMessage(event){
 }
 
 function sendMessageToWS(data, wsConnection){
-  showToDebug("sending to the web socket");
+  // showToDebug("sending to the web socket");
   wsConnection.send(data);
 }
 
@@ -211,15 +246,16 @@ function showToDebug(message, type=1){
 function main(){
   const webSocket= new WebSocket("ws://localhost:8000/ws");
   const status= document.getElementById("api-listener-state");
-  window.dataExtract= {}  // create my own namespace for me to store states available through out the app
+  window.dataExtract= {
+    flaggedUrls: []
+  }  // create my own namespace for me to store states available through out the app
   
   showToDebug(status.checked);
   
-
   status.addEventListener("change", (event)=>{
     stateChangeHandler(event, webSocket);
   })
-
+  handleFlagClick();
   webSocket.onmessage(receiveWSMessage);
 }
 

@@ -8,7 +8,7 @@
         "48": "icons/filter_icon.png"
     },
     "permissions":["<all_urls>", "scripting", "webRequest", "webRequestBlocking", "webRequestFilterResponse.serviceWorkerScript",
-            "tabs", "host"
+            "tabs"
         ],
     "content_scripts":[
         {
@@ -20,6 +20,9 @@
         "default_panel": "sidebar/sidebar.html",
         "default_title": "My Sidebar", 
         "open_at_install": true
-    }
+    }, 
+    "web_accessible_resources":[
+        "resources/flag-icon.svg"
+    ]
 }
 

@@ -1,20 +1,11 @@
 const canvasElement= document.getElementById("navigationTree");
 
-let myBtn= document.querySelector("#BUTTON");
-let debugEl= document.getElementById("debugger");
-if(!debugEl){
-    debugEl.textContent= "Couldn't find the 'Trie Content' element";
-}
-
-debugEl.style.color= "blue";
-
 browser.runtime.onMessage.addListener(showTrieContent);
-
+//================== URL Tree ===================================
 function showTrieContent(message, listener){  // listens to the message from the content_script
     
     // debugEl.textContent= JSON.stringify(message.data);
     // urlInTrye= getUrlInTrye(message.data);
-
     
 }
 
@@ -66,13 +57,42 @@ function drawURLRectangle( url ,x,y, paddingH= 0, paddingV= 0){
     ctx.strokeRect(x,y, currentTextMeasurements.width+ paddingH, 20 + paddingV)
 }
 
+//================================== End URL Tree==================================
 
 // To be sent to another file
 
 // a request is always made to:  https://developer.mozilla.org/api/v1/whoami
 let apiRequests= [];
 
-async function logAPIRequest(requestDetail, webSocketConnection){
+function hideHTMLElement(htmlElement){
+  htmlElement.style.display= "none";
+}
+function showHTMLElement(htmlElement){
+  htmlElement.style.display=""
+}
+
+function stateChangeHandler(event, webSocketConnection){
+  const explainationText= document.getElementById("explainations");
+  const apiLogs= document.getElementById("api-logs");
+
+  if(event.target.checked){
+    hideHTMLElement(explainationText);
+    showHTMLElement(apiLogs);
+    browser.webRequest.onBeforeRequest.addListener((requestDetail)=>{
+      logAPIRequest(requestDetail,webSocketConnection);
+    }, {
+      urls: ["<all_urls>"]
+    }, ["blocking"]);
+  }else{
+    showHTMLElement(explainationText);
+    hideHTMLElement(apiLogs);
+    browser.webRequst.onBeforeRequest.addListener((requestDetail)=>{}, {
+      urls: ["<all_urls>"]
+    })
+  }
+}
+
+function logAPIRequest(requestDetail, webSocketConnection){
   try{
     const currentRequest= {};
     const decoder= new TextDecoder("utf-8");
@@ -96,7 +116,7 @@ async function logAPIRequest(requestDetail, webSocketConnection){
       };
       filter.onstop= (event)=>{
         filter.close();
-      }
+      };
       // apiRequests.push(currentRequest);
     }catch(error){
       showToDebug(error.message,2)
@@ -107,41 +127,48 @@ async function logAPIRequest(requestDetail, webSocketConnection){
 
 
 // To another file again
-  // Will create the API Request components in the list with the right classes and based on the "request" array
-  function createAndDisplayAPIRequests(requestObject, webSocketConnection){
-    try {
-      let requestList= document.getElementById("request-list");
-      let requestComponent= document.createElement("div");
-      let requestMethod= document.createElement("div");
-      let requestUrl= document.createElement("div");
+// Will create the API Request components in the list with the right classes and based on the "request" array
+function createAndDisplayAPIRequests(requestObject, webSocketConnection){
+  try {
+    let requestList= document.getElementById("request-list");
+    let requestComponent= document.createElement("div");
+    let requestMethod= document.createElement("div");
+    let requestUrl= document.createElement("div");
+    
+    requestComponent.classList.add("request-component");
+    requestComponent.classList.add("bg-secondary");
+    requestMethod.classList.add("request-method");
+    requestUrl.classList.add("request-url");
+
+    requestUrl.textContent= requestObject.url;
+    requestMethod.textContent= (requestObject.method).toUpperCase();
+    requestComponent.appendChild(requestMethod);
+    requestComponent.appendChild(requestUrl);
+    requestList.appendChild(requestComponent);
+
+    requestComponent.addEventListener("click" , function(e){
+      let responseElement= document.getElementById("api-response");
+      responseElement.textContent= requestObject.data;   
+
+      // This is supposed to work because of this function is the first class of another,
+      //  so it will get access to objects outside of itself because of closure
       
-      requestComponent.classList.add("request-component");
-      requestComponent.classList.add("bg-secondary");
-      requestMethod.classList.add("request-method");
-      requestUrl.classList.add("request-url");
-  
-      requestUrl.textContent= requestObject.url;
-      requestMethod.textContent= (requestObject.method).toUpperCase();
-      requestComponent.appendChild(requestMethod);
-      requestComponent.appendChild(requestUrl);
-      requestList.appendChild(requestComponent);
-  
-      requestComponent.addEventListener("click" , function(e){
-        let responseElement= document.getElementById("api-response");
-        responseElement.textContent= requestObject.data;   
-        // This is supposed to work because of this function is the first class of another,
-        //  so it will get access to objects outside of itself because of closure
-        sendMessageToWS(requestObject.data, webSocketConnection);
-
-        // test
-        navigate("https://www.google.com");
-      });
-
-    } catch (error) {
-      throw new Error(error.message);
-    }
+      sendMessageToWS(requestObject.data, webSocketConnection);
+      // test
+      navigate("https://www.google.com");
+    });
+  } catch (error) {
+    throw new Error(error.message);
   }
+}
 
+function saveSelectedUrlToState(urlLink){
+  window.dataExtract.selectedUrl= urlLink;
+}
+
+function flagURLRequest(event){
+
+}
 
 //End to another file
 
@@ -172,6 +199,7 @@ function navigate(url){
 
 
 function showToDebug(message, type=1){
+  let debugEl= document.getElementById("debugger");
   if (type!=1){
     debugEl.style.color= "red";
   }
@@ -179,16 +207,20 @@ function showToDebug(message, type=1){
   debugEl.textContent= message; // JSON.stringify(apiRequests);
 }
 
+
 function main(){
   const webSocket= new WebSocket("ws://localhost:8000/ws");
-  browser.webRequest.onBeforeRequest.addListener((requestDetail)=>{
-    logAPIRequest(requestDetail, webSocket);
-  }, {
-    urls: ["<all_urls>"]
-  }, ["blocking"]);
+  const status= document.getElementById("api-listener-state");
+  window.dataExtract= {}  // create my own namespace for me to store states available through out the app
   
+  showToDebug(status.checked);
+  
+
+  status.addEventListener("change", (event)=>{
+    stateChangeHandler(event, webSocket);
+  })
+
   webSocket.onmessage(receiveWSMessage);
-  
 }
 
 main();

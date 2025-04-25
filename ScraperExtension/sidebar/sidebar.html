@@ -5,24 +5,35 @@
     </head>
     <body>
         <div class="main-container bg-primary text-primary" >
-            <h2 id="title" >Requests</h2>
-            <div class="requests-container-outer" >
+            <div>
+                <div class="heading-container" >
+                    <h2 class="title welcome-message" >Welcome to the ScraperExtension</h2>
+                    <h2 class="title request-title" >Requests</h2>
+                    <label class="switch">
+                        <input type="checkbox" id="api-listener-state" value=0 />
+                        <span class="slider" ></span>
+                    </label>
+                </div>
+                
+                <p id="explainations" >
+                    With the help of this extension, you will be able to monitor all the on-going requests made by the web pages as time goes by.
+                    Read the data they request, flag a specific request you want data from.
+                    Extract that particular data. 
+                    Save that process to repeat it on a daily basis.
+                </p> 
+            </div>
+            <div class="requests-container-outer" id="api-logs" >
                 <div class="requests-list" id="request-list" >
-                    <div class="request-component bg-secondary" >
-                            <div class="request-method" >
-                                <p>GET</p>
-                            </div>
-                            <div class="request-url" >
-                                <p>https://developer.mozilla.org/api/v1/whoami</p>
-                            </div>
-                    </div>
+                    <!-- will be filled through Javascript of the list of API calls -->
                 </div>
                 <div class="response-body" id="api-response" >
-                    hello this is the response of the http requets you just clicked, make sure you follow me on Insta
-                    so i believe in you and in the fact that you will be scrollable when things get tough, I will always
-                    be here for you though, there is nothing to be worried about, I am a High agency person and I believe in me
+                    <button class="btn" >
+                        <img src="../resources/flag-icon.svg" class="flag-icn" />
+                    </button>
+                    <!-- Will be filled by the content of a clicked request -->
                 </div>
             </div>
+        
             <p id="debugger" ></p>
             <!-- <button id="BUTTON">Test Button for my boy Content</button> -->
             <!-- <canvas id="navigationTree" style="width:100vw;height:60vh" > </canvas> -->

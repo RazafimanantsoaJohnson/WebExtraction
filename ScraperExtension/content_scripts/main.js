@@ -54,11 +54,13 @@ function insertNewUrlInTrie(urlPathArray, urlTrie){
 
 browser.runtime.onMessage.addListener((message)=>{
     window.location.href= "https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/tabs/query";
-})
+});
 
 
-async function main(){
 
+
+function main(){
+    console.log(document.documentElement.outerHTML);
     browser.runtime.sendMessage({
         title: "UrlTrie", 
         data: constructUrlTrie(getAllUrls(getCurrentUrlBase()))

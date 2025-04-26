@@ -71,7 +71,7 @@ function showHTMLElement(htmlElement){
   htmlElement.style.display=""
 }
 
-function stateChangeHandler(event, webSocketConnection){
+function stateChangeHandler(event, webSocketConnection, currentTabId){
   const explainationText= document.getElementById("explainations");
   const apiLogs= document.getElementById("api-logs");
 
@@ -79,16 +79,16 @@ function stateChangeHandler(event, webSocketConnection){
     hideHTMLElement(explainationText);
     showHTMLElement(apiLogs);
     browser.webRequest.onBeforeRequest.addListener((requestDetail)=>{
-      logAPIRequest(requestDetail,webSocketConnection);
+      if(requestDetail.tabId=== currentTabId){    // filter to only log the requests of the "active tab"
+        logAPIRequest(requestDetail,webSocketConnection);
+      }
     }, {
       urls: ["<all_urls>"]
     }, ["blocking"]);
   }else{
     showHTMLElement(explainationText);
     hideHTMLElement(apiLogs);
-    browser.webRequst.onBeforeRequest.addListener((requestDetail)=>{}, {
-      urls: ["<all_urls>"]
-    })
+    browser.webRequest.onBeforeRequest.removeListener((requestDetail)=>{});
   }
 }
 
@@ -149,38 +149,45 @@ function createAndDisplayAPIRequests(requestObject, webSocketConnection){
     requestComponent.addEventListener("click" , function(e){
       let responseElement= document.getElementById("api-response");
       responseElement.textContent= requestObject.data;  
-      
       saveSelectedUrlToState(requestObject.url);
-      checkFlagStatus();
-      showToDebug(JSON.stringify(window.dataExtract));
       
-      sendMessageToWS(requestObject.data, webSocketConnection);
+      showToDebug(JSON.stringify(window.dataExtract));
+      // sendMessageToWS(requestObject.data, webSocketConnection);       ( send data to the Web Socket )
       // test
-      navigate("https://www.google.com");
+      // navigate("https://www.google.com");
+      
     });
   } catch (error) {
     throw new Error(error.message);
   }
 }
 
+async function getCurrentTabId(){
+  const tabs= await browser.tabs.query({active: true, currentWindow:true});
+  if (tabs[0]){
+    showToDebug(JSON.stringify(tabs));
+    return tabs[0].id;
+  }
+}
+
+//===== Flag Status and Button ==================
 function handleFlagClick(){
   const flagButton= document.getElementById("flag-btn");
   flagButton.addEventListener("click", flagURLRequest)
 }
 
-function checkFlagStatus(){
+function checkFlagStatus(){   // will return the index of the selected URL if it is in the flaggedUrls state but will return -1 if not
   const flaggedUrls= window.dataExtract.flaggedUrls;
   const currentSelectedUrl= window.dataExtract.selectedUrl;
   if (flaggedUrls.length== 0){
-    return;
+    return -1;
   }
   for(let i=0; i<flaggedUrls.length; i++){
     if(flaggedUrls[i]== currentSelectedUrl){
-      updateFlagButton(true);
-      return;
+      return i;
     }
   }
-  updateFlagButton(false);
+  return -1;
 }
 
 function updateFlagButton(isActive){
@@ -189,21 +196,36 @@ function updateFlagButton(isActive){
     flagButton.classList.remove("btn");
     flagButton.classList.add("btn-active");
   }else{
-    flagButton.classList.remove("btn-active");
     flagButton.classList.add("btn");
+    flagButton.classList.remove("btn-active");
   }
 }
 
 function flagURLRequest(event){
-  window.dataExtract.flaggedUrls.push(window.dataExtract.selectedUrl);
-
+  let selectedUrlIndex= checkFlagStatus();
+  showToDebug(selectedUrlIndex);
+  if (selectedUrlIndex== -1){
+    window.dataExtract.flaggedUrls.push(window.dataExtract.selectedUrl);
+    updateFlagButton(true);
+  }else{
+    window.dataExtract.flaggedUrls.splice(selectedUrlIndex,1);
+    updateFlagButton(false);
+  }
   showToDebug(JSON.stringify(window.dataExtract));
 }
 
+
 function saveSelectedUrlToState(urlLink){
   window.dataExtract.selectedUrl= urlLink;
+  let currentFlagStatus= checkFlagStatus();
+  if(currentFlagStatus== -1){
+    updateFlagButton(false);
+  }else{
+    updateFlagButton(true);
+  }
 }
 
+// =============== End Flag Status and Button =======================
 
 //End to another file
 
@@ -243,7 +265,7 @@ function showToDebug(message, type=1){
 }
 
 
-function main(){
+async function main(){
   const webSocket= new WebSocket("ws://localhost:8000/ws");
   const status= document.getElementById("api-listener-state");
   window.dataExtract= {
@@ -252,8 +274,10 @@ function main(){
   
   showToDebug(status.checked);
   
-  status.addEventListener("change", (event)=>{
-    stateChangeHandler(event, webSocket);
+  await getCurrentTabId();
+  status.addEventListener("change", async (event)=>{
+    let currentTabId= await getCurrentTabId();
+    stateChangeHandler(event, webSocket, currentTabId);
   })
   handleFlagClick();
   webSocket.onmessage(receiveWSMessage);

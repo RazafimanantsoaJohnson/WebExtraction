@@ -1,7 +1,10 @@
 {
-    "https://extraction_project_test.com": {},
-    "https://extraction_project_test2.com": {},
-    "moz-extension://cf451ce0-0169-416a-a08b-ba16b6d6fd1d/sidebar/sidebar.html": {},
-    "moz-extension://41669e37-0e87-4720-90a8-10214151968a/sidebar/sidebar.html": {},
-    "moz-extension://f081a037-6acc-429c-ac32-09a1258b99d7/sidebar/sidebar.html": {}
+    "project1":{
+        "url": 
+    "https://www.linkedin.com/jobs/search/?currentJobId=4215296176&f_CR=103644278%2C101282230%2C105015875%2C101165590%2C106057199%2C101174742%2C102890719%2C100565514%2C101452733&geoId=92000000&keywords=python&origin=JOB_SEARCH_PAGE_SEARCH_BUTTON&refresh=true&sortBy=R&start=25", 
+        "waitTime":5000,
+        "actions":[
+            {"scroll": 4000}
+        ]
+    }
 }

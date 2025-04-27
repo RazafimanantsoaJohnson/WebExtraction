@@ -16,11 +16,12 @@
             "js": ["/content_scripts/main.js", "/content_scripts/capture_requests.js"]
         }
     ],
-    "sidebar_action": {
-        "default_panel": "sidebar/sidebar.html",
-        "default_title": "My Sidebar", 
-        "open_at_install": true
-    }, 
+     
+    "background":{
+        "scripts": ["background_scripts/communicate.js"], 
+        "persistent": true, 
+        "type":"module"
+    },
     "web_accessible_resources":[
         "resources/flag-icon.svg"
     ]

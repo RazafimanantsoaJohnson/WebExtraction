@@ -252,12 +252,12 @@ function navigate(url){
   })
 }
 
-async function test_send_command(){
-  const webSocket= new WebSocket("ws://localhost:8000/command");
-  await setTimeout(()=>{
-    webSocket.send(JSON.stringify({command:"register", url: window.location.href }));
-  }, 2000);
-}
+// async function test_send_command(){
+//   const webSocket= new WebSocket("ws://localhost:8000/command");
+//   await setTimeout(()=>{
+//     webSocket.send(JSON.stringify({command:"register", url: window.location.href }));
+//   }, 2000);
+// }
 
 
 function showToDebug(message, type=1){
@@ -280,14 +280,12 @@ async function main(){
   
   showToDebug(status.checked);
 
-  await getCurrentTabId();
-  await test_send_command();    // test send command
+  
   status.addEventListener("change", async (event)=>{
     let currentTabId= await getCurrentTabId();
     stateChangeHandler(event, webSocket, currentTabId);
   })
   handleFlagClick();
-
   webSocket.onmessage(receiveWSMessage);
 }
 

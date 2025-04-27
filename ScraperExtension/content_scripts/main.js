@@ -74,7 +74,7 @@ function sendMessageToWS(data, wsConnection){
 async function listJobCards(waitTime){
     // we have to wait for the page to be loaded
     await setTimeout(async()=>{
-        scrollBottom({type:"class", name:"GDWMPYlbLLvJwwJkvOFRdwOcJxcoOxMsCHeyMglQ"});
+        scrollBottom({type:"class", name:"GDWMPYlbLLvJwwJkvOFRdwOcJxcoOxMsCHeyMglQ"}, 4000);
         const jobList= getEl({type:"class", name:"job-card-container"}, true);
         console.log({jobList});
         for(let i=0; i<jobList.length; i++){
@@ -105,19 +105,21 @@ async function mouseClick(elementToClick, waitTime=0){
     }
 }
 
-function getEl(selector, returnMany= false, waitTime=0){ // will receive an object of form:   { type:id|class, name:"the id name,..." } => will return the first element 
+function getEl(selector, returnMany= false){ // will receive an object of form:   { type:id|class, name:"the id name,..." } => will return the first element 
     try{
         let result= undefined;
         if(selector.type== "tag"){
             if(returnMany){
                 result= document.getElementsByTagName(selector.name);
+            }else{
+                result= document.getElementsByTagName(selector.name)[0];
             }
-            result= document.getElementsByTagName(selector.name)[0];
         } else if( selector.type== "class"){
             if(returnMany){
                 result= document.getElementsByClassName(selector.name);
+            }else{
+                result= document.getElementsByClassName(selector.name)[0];
             }
-            result= document.getElementsByClassName(selector.name)[0];
         } else if (selector.type=="id"){
             result= document.getElementById(selector.name);
         }else{ 
@@ -132,19 +134,21 @@ function getEl(selector, returnMany= false, waitTime=0){ // will receive an obje
     }
 }
 
+
 //===============end browser actions
 
 
 async function main(){
     // console.log(document.documentElement.outerHTML);
-    // const webSocket= new WebSocket("ws://localhost:8000/ws");
-    const nextButton= getEl({type:"class", name:"jobs-search-pagination__button--next" });
-    await listJobCards(5000);
-    mouseClick(nextButton);
-    browser.runtime.sendMessage({
-        title: "UrlTrie", 
-        data: constructUrlTrie(getAllUrls(getCurrentUrlBase()))
+    await browser.runtime.sendMessage({
+        title: "cs-state", 
+        data: {state:"loaded"}
     });
+    
+    await listJobCards(5000);
+    const nextButton= getEl({type:"class", name:"jobs-search-pagination__button--next" });
+    console.log({nextButton});
+    mouseClick(nextButton);
 }
 
 main();

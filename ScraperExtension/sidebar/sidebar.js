@@ -117,7 +117,6 @@ function logAPIRequest(requestDetail, webSocketConnection){
       filter.onstop= (event)=>{
         filter.close();
       };
-      // apiRequests.push(currentRequest);
     }catch(error){
       showToDebug(error.message,2)
     }
@@ -152,7 +151,7 @@ function createAndDisplayAPIRequests(requestObject, webSocketConnection){
       saveSelectedUrlToState(requestObject.url);
       
       showToDebug(JSON.stringify(window.dataExtract));
-      // sendMessageToWS(requestObject.data, webSocketConnection);       ( send data to the Web Socket )
+      sendMessageToWS(requestObject.data, webSocketConnection);  //     ( send data to the Web Socket )
       // test
       // navigate("https://www.google.com");
       
@@ -235,9 +234,9 @@ function receiveWSMessage(event){
   showToDebug(event.data);
 }
 
-function sendMessageToWS(data, wsConnection){
+async function sendMessageToWS(data, wsConnection){
   // showToDebug("sending to the web socket");
-  wsConnection.send(data);
+  await wsConnection.send(data);
 }
 
 // End connection to websocket
@@ -253,6 +252,12 @@ function navigate(url){
   })
 }
 
+async function test_send_command(){
+  const webSocket= new WebSocket("ws://localhost:8000/command");
+  await setTimeout(()=>{
+    webSocket.send(JSON.stringify({command:"register", url: window.location.href }));
+  }, 2000);
+}
 
 
 function showToDebug(message, type=1){
@@ -267,19 +272,22 @@ function showToDebug(message, type=1){
 
 async function main(){
   const webSocket= new WebSocket("ws://localhost:8000/ws");
+
   const status= document.getElementById("api-listener-state");
   window.dataExtract= {
     flaggedUrls: []
   }  // create my own namespace for me to store states available through out the app
   
   showToDebug(status.checked);
-  
+
   await getCurrentTabId();
+  await test_send_command();    // test send command
   status.addEventListener("change", async (event)=>{
     let currentTabId= await getCurrentTabId();
     stateChangeHandler(event, webSocket, currentTabId);
   })
   handleFlagClick();
+
   webSocket.onmessage(receiveWSMessage);
 }
 

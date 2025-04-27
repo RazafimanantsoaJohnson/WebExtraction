@@ -56,11 +56,91 @@ browser.runtime.onMessage.addListener((message)=>{
     window.location.href= "https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/tabs/query";
 });
 
+// Connection to websocket
+
+function receiveWSMessage(event){
+    // showToDebug(event.data);
+}
+  
+function sendMessageToWS(data, wsConnection){
+  // showToDebug("sending to the web socket");
+  wsConnection.send(data);
+}
+  
+// End connection to websocket
+
+//================browser actions
+    // Each browser action need to be asynchronous to make sure we are waiting for the page to fully load
+async function listJobCards(waitTime){
+    // we have to wait for the page to be loaded
+    await setTimeout(async()=>{
+        scrollBottom({type:"class", name:"GDWMPYlbLLvJwwJkvOFRdwOcJxcoOxMsCHeyMglQ"});
+        const jobList= getEl({type:"class", name:"job-card-container"}, true);
+        console.log({jobList});
+        for(let i=0; i<jobList.length; i++){
+            mouseClick(jobList[i]);
+        }
+    }, waitTime);
+}
+
+function scrollBottom(selector, scrollPosition){
+    try{
+        const elementToScroll= getEl(selector,false);
+        console.log({elementToScroll});
+        elementToScroll.scrollTop= scrollPosition;
+    }catch(error){
+        throw new Errror(error);
+    }
+}
+
+async function mouseClick(elementToClick, waitTime=0){
+    try{    
+        console.log(elementToClick);
+        await setTimeout(()=>{
+            elementToClick.click();
+        }, waitTime);
+    }catch(error){
+        console.error(error);
+        throw new Error(`An error occured when trying to click the element: ${selector}`);
+    }
+}
+
+function getEl(selector, returnMany= false, waitTime=0){ // will receive an object of form:   { type:id|class, name:"the id name,..." } => will return the first element 
+    try{
+        let result= undefined;
+        if(selector.type== "tag"){
+            if(returnMany){
+                result= document.getElementsByTagName(selector.name);
+            }
+            result= document.getElementsByTagName(selector.name)[0];
+        } else if( selector.type== "class"){
+            if(returnMany){
+                result= document.getElementsByClassName(selector.name);
+            }
+            result= document.getElementsByClassName(selector.name)[0];
+        } else if (selector.type=="id"){
+            result= document.getElementById(selector.name);
+        }else{ 
+            throw new Error("The selector object was invalid");
+        }
+        if(result== undefined){
+            throw new Error("Unable to get the specified element");
+        }
+        return result;
+    }catch(error){
+        throw new Error(error.message);
+    }
+}
+
+//===============end browser actions
 
 
-
-function main(){
-    console.log(document.documentElement.outerHTML);
+async function main(){
+    // console.log(document.documentElement.outerHTML);
+    // const webSocket= new WebSocket("ws://localhost:8000/ws");
+    const nextButton= getEl({type:"class", name:"jobs-search-pagination__button--next" });
+    await listJobCards(5000);
+    mouseClick(nextButton);
     browser.runtime.sendMessage({
         title: "UrlTrie", 
         data: constructUrlTrie(getAllUrls(getCurrentUrlBase()))

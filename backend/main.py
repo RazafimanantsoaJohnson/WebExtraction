@@ -34,10 +34,11 @@ async def websocket_commands(websocket: WebSocket):
             case "html_page":
                 write_data_in_file(data["htmlPage"])
             case "page-status":
+                print(data["url"])
                 print("checking status")
                 if data["state"]== "loaded":
                     print("sending actions")
-                    await websocket.send_text(f"{send_actions()}")
+                    await websocket.send_json(send_actions())
             case "confirmation":
                 print(data)
         await websocket.send_text(f"We received: {data}")

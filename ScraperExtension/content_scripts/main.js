@@ -89,7 +89,7 @@ function scrollBottom(selector, scrollPosition){
         console.log({elementToScroll});
         elementToScroll.scrollTop= scrollPosition;
     }catch(error){
-        throw new Errror(error);
+        throw new Error(error);
     }
 }
 
@@ -140,9 +140,16 @@ function getEl(selector, returnMany= false){ // will receive an object of form: 
 
 async function main(){
     // console.log(document.documentElement.outerHTML);
-    await browser.runtime.sendMessage({
+    const bsPort= browser.runtime.connect();  // Connect to the background script with an open connection
+
+    bsPort.postMessage({
         title: "cs-state", 
-        data: {state:"loaded"}
+        data: {state:"loaded", url: window.location.href}
+    });
+
+    bsPort.onMessage.addListener((message)=>{
+        console.log(`The background script received: ${JSON.stringify(message)}`);
+        // console.log(message.data);
     });
     
     await listJobCards(5000);

@@ -136,11 +136,24 @@ function getEl(selector, returnMany= false){ // will receive an object of form: 
 
 
 //===============end browser actions
-
+async function executeReceivedActions(actions){
+    try{
+        for (let i=0; i<actions.length; i++){
+            if(actions[i]["type"]== "scroll"){
+                scrollBottom(actions[i]["selector"], actions[i]["position"]);
+            }
+        }
+    }catch(error){
+        console.error("An error occured when executing the actions from the web socket");
+        console.log({error});
+    }
+    
+}
 
 async function main(){
     // console.log(document.documentElement.outerHTML);
     const bsPort= browser.runtime.connect();  // Connect to the background script with an open connection
+    let actionWaitTime;
 
     bsPort.postMessage({
         title: "cs-state", 
@@ -150,9 +163,14 @@ async function main(){
     bsPort.onMessage.addListener((message)=>{
         console.log(`The background script received: ${JSON.stringify(message)}`);
         // console.log(message.data);
+        if(message.title== "actions"){
+            setTimeout(()=>{
+                executeReceivedActions(message.data.actions);
+            },message.data.waitTime);
+        }
     });
-    
-    await listJobCards(5000);
+    console.log({actionWaitTime});      // will not show any data because of asynchronism
+    // await listJobCards(5000);
     const nextButton= getEl({type:"class", name:"jobs-search-pagination__button--next" });
     console.log({nextButton});
     mouseClick(nextButton);

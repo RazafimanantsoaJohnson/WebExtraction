@@ -26,8 +26,8 @@ async def websocket_endpoint(websocket: WebSocket):
 @app.websocket("/command")
 async def websocket_commands(websocket: WebSocket):
     await websocket.accept()
-    print("sending the first message")
-    await websocket.send_text("send")
+    # print("sending the first message")
+    # await websocket.send_text("send")
     while True:
         data= await websocket.receive_json()
         match data["title"]:
@@ -38,7 +38,7 @@ async def websocket_commands(websocket: WebSocket):
                 print("checking status")
                 if data["state"]== "loaded":
                     print("sending actions")
-                    await websocket.send_json(send_actions())
+                    await websocket.send_json({ "title": "actions" , "data": send_actions()})
             case "confirmation":
                 print(data)
         await websocket.send_text(f"We received: {data}")

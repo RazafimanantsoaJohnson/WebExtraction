@@ -13,22 +13,21 @@ async function receiveWSMessage(event, csConnection){
     if(event.data=="send"){
         webSocket.send(JSON.stringify({ title:"html_page" ,htmlPage: document.documentElement.outerHTML}));
     }else{
-        let jsonMessage= JSON.parse(event.data);
-        if (jsonMessage.url){
-            webSocket.send(JSON.stringify({ title:"confirmation" ,data:jsonMessage}));
+        let jsonWSMessage= JSON.parse(event.data);
+        if(jsonWSMessage.title== "actions"){
+            csConnection.postMessage(jsonWSMessage);  
         }
     }
 }
 
 async function connectToCS(port, webSocket){
-    port.postMessage("Ty nenao content script");
     port.onMessage.addListener((message)=>{
         if(message.title=="cs-state"){
             webSocket.send(JSON.stringify({title:"page-status" ,state:"loaded", url: message.data.url}));
-        }    
-    })
+        }
+    });``
     webSocket.onmessage=(event)=>{
-        port.postMessage(event.data);
+        receiveWSMessage(event, port);
     };
 }
 
@@ -40,7 +39,6 @@ async function main(){
         browser.runtime.onConnect.addListener((port)=>{
             connectToCS(port, webSocket);
         });
-        window.dataExtract.port.postMessage("A message from outside");
     
 
     }catch(error){

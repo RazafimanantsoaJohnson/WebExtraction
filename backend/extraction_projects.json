@@ -4,7 +4,21 @@
     "https://www.linkedin.com/jobs/search/?currentJobId=4215296176&f_CR=103644278%2C101282230%2C105015875%2C101165590%2C106057199%2C101174742%2C102890719%2C100565514%2C101452733&geoId=92000000&keywords=python&origin=JOB_SEARCH_PAGE_SEARCH_BUTTON&refresh=true&sortBy=R&start=25", 
         "waitTime":5000,
         "actions":[
-            { "type":"scroll", "position": 4000, "selector":{"type":"class", "name":"DDFOTUbaAiPsQYwCyToUtCqEmsOHKDjgFgYNvvg"}}
+            { "type":"scroll", "position": 4000, "selector":{"type":"class", "name":"TrLibOdePtykUpHeGwiKqbDfHzCeKgoXnDjqM"}, "extract":{
+                "selector":{
+                    "type": "tree", 
+                    "name": "a.job-card-list__title--link > span> strong"
+                },
+                "isMany": true
+            } }, 
+            {"type": "click", "isMany": false, "selector": {"type":"class", "name": "mv5 t-16 pt1 pb1 artdeco-button artdeco-button--muted artdeco-button--icon-right artdeco-button--2 artdeco-button--secondary ember-view"}},
+            { "type":"click", "waitTime": 5000, "isMany": true, "selector": {"type":"class", "name": "job-card-container"}, "extract":{
+                "selector":{
+                    "type": "tree", 
+                    "name": "div.job-details-skill-match-modal__content > div> ul > li > div"
+                }, 
+                "isMany": true
+            } } 
         ]
     }
 }

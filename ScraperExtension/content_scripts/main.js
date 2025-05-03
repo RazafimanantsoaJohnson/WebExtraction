@@ -56,19 +56,6 @@ browser.runtime.onMessage.addListener((message)=>{
     window.location.href= "https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/tabs/query";
 });
 
-// Connection to websocket
-
-function receiveWSMessage(event){
-    // showToDebug(event.data);
-}
-  
-function sendMessageToWS(data, wsConnection){
-  // showToDebug("sending to the web socket");
-  wsConnection.send(data);
-}
-  
-// End connection to websocket
-
 //================browser actions
     // Each browser action need to be asynchronous to make sure we are waiting for the page to fully load
 async function listJobCards(waitTime){
@@ -93,12 +80,20 @@ function scrollBottom(selector, scrollPosition){
     }
 }
 
-async function mouseClick(elementToClick, waitTime=0){
+async function mouseClick(elementsToClick, waitTime=0){
     try{    
-        console.log(elementToClick);
-        await setTimeout(()=>{
-            elementToClick.click();
-        }, waitTime);
+        const isElementsCollection= elementsToClick.constructor.name === "HTMLCollection";
+        if(isElementsCollection){
+            for(let i=0; i<elementsToClick.length; i++){
+                setTimeout(()=>{
+                    elementsToClick[i].click();
+                }, waitTime);
+            }
+        }else{
+            setTimeout(()=>{
+                elementsToClick.click();
+            }, waitTime);
+        }
     }catch(error){
         console.error(error);
         throw new Error(`An error occured when trying to click the element: ${selector}`);
@@ -108,25 +103,43 @@ async function mouseClick(elementToClick, waitTime=0){
 function getEl(selector, returnMany= false){ // will receive an object of form:   { type:id|class, name:"the id name,..." } => will return the first element 
     try{
         let result= undefined;
-        if(selector.type== "tag"){
-            if(returnMany){
-                result= document.getElementsByTagName(selector.name);
-            }else{
-                result= document.getElementsByTagName(selector.name)[0];
+        let parent= document;
+        if(selector.parentSelector){
+            parent= getEl(selector.parentSelector);
+            console.log({parent});
+        }
+        if(parent){
+            switch(selector.type){
+                case "tag":
+                    if(returnMany){
+                        result= parent.getElementsByTagName(selector.name);
+                    }else{
+                        result= parent.getElementsByTagName(selector.name)[0];
+                    }
+                    break;
+                case "class":
+                    if(returnMany){
+                        result= parent.getElementsByClassName(selector.name);
+                    }else{
+                        result= parent.getElementsByClassName(selector.name)[0];
+                    }
+                    break;
+                case "id":
+                    result= parent.getElementById(selector.name);
+                    break;
+                case "tree":
+                    if(returnMany){
+                        result= parent.querySelectorAll(selector.name);
+                    }else{
+                        result= parent.querySelector(selector.name);
+                    }
+                    break;
+                default:
+                    throw new Error("The selector object was invalid");
             }
-        } else if( selector.type== "class"){
-            if(returnMany){
-                result= document.getElementsByClassName(selector.name);
-            }else{
-                result= document.getElementsByClassName(selector.name)[0];
-            }
-        } else if (selector.type=="id"){
-            result= document.getElementById(selector.name);
-        }else{ 
-            throw new Error("The selector object was invalid");
         }
         if(result== undefined){
-            throw new Error("Unable to get the specified element");
+            throw new Error(`Unable to get the specified element ${selector.type}:${selector.name}`);
         }
         return result;
     }catch(error){
@@ -136,11 +149,23 @@ function getEl(selector, returnMany= false){ // will receive an object of form: 
 
 
 //===============end browser actions
-async function executeReceivedActions(actions){
+async function executeReceivedActions(actions, bsPort){ // Takes the list of actions and the connection to the background script (which will send data to the back)
     try{
+        console.log({actions});
         for (let i=0; i<actions.length; i++){
-            if(actions[i]["type"]== "scroll"){
-                scrollBottom(actions[i]["selector"], actions[i]["position"]);
+            switch(actions[i]["type"]){
+                case "scroll":
+                    await scrollBottom(actions[i]["selector"], actions[i]["position"]);
+                    returnExtractedData(actions[i], bsPort);
+                    break;
+                case "click":
+                    let elementsToClick= getEl(actions[i]["selector"], actions[i]["isMany"]);     // this call should change to be based on the specified parent
+                    await mouseClick(elementsToClick, actions[i]["waitTime"]?actions[i]["waitTime"]:0 );
+                    setTimeout(()=>{returnExtractedData(actions[i],bsPort);}, 3000)
+                    
+                    break;
+                default:
+                    throw new Error("The desired action is not recognized");
             }
         }
     }catch(error){
@@ -150,11 +175,68 @@ async function executeReceivedActions(actions){
     
 }
 
+function returnExtractedData(action, bsPort){
+    try{
+        if(action["extract"]){
+            let extractedDataFromAction= extractText(action["extract"]["selector"], action["extract"]["isMany"]);
+            bsPort.postMessage({title:"return-data", data: extractedDataFromAction});
+        }
+    }catch(error){
+        raiseError("Something went wrong when returning the extractedData", bsPort);
+    }
+}
+
+function raiseError(message, bsPort){
+    console.error(message);
+    bsPort.postMessage({title:"error", data: message })
+    throw new Error(message);
+}
+
+function extractText(selector, isMany){     // He will have a different kind of selector, we will want to define his parent too 
+    try{
+        const elementsToExtract= getEl(selector, isMany);
+        let results=[];
+        let isElementsToExtractCollection= elementsToExtract.constructor.name=== "NodeList";    // querySelectorAll returns "NodeList" and not "HTMLCollection"
+        if(!isElementsToExtractCollection){
+            return elementsToExtract.innerText;
+        }
+        for(let i=0; i<elementsToExtract.length; i++){
+            results.push(elementsToExtract[i].innerText);
+        }
+        return results;
+    }catch(error){
+        console.error("An error occured when trying to Extract Text");
+        console.log({ExtractTextError: error})
+    }
+}
+
+function testFunction(){
+    console.log(
+        getEl({
+            type:"class", 
+            name: "job-card-list__title--link",
+            parentSelector: {
+                type:"class",
+                name: "bmneyvcsyJQLUJRbVrfBkyewMaEqzVKyMUg"
+            }
+        })
+    );
+    console.log(extractText({
+        type: "tree", 
+        name: "a.job-card-list__title--link > span> strong"
+    },true));
+    console.log(extractText({
+        type: "tree", 
+        name: "a.job-card-list__title--link > span> strong"
+    },false))
+    
+}
+
 async function main(){
     // console.log(document.documentElement.outerHTML);
     const bsPort= browser.runtime.connect();  // Connect to the background script with an open connection
     let actionWaitTime;
-
+    
     bsPort.postMessage({
         title: "cs-state", 
         data: {state:"loaded", url: window.location.href}
@@ -165,15 +247,14 @@ async function main(){
         // console.log(message.data);
         if(message.title== "actions"){
             setTimeout(()=>{
-                executeReceivedActions(message.data.actions);
+                // test
+                // testFunction();
+                // endTest
+                executeReceivedActions(message.data.actions, bsPort);
             },message.data.waitTime);
         }
     });
-    console.log({actionWaitTime});      // will not show any data because of asynchronism
-    // await listJobCards(5000);
-    const nextButton= getEl({type:"class", name:"jobs-search-pagination__button--next" });
-    console.log({nextButton});
-    mouseClick(nextButton);
+    console.log({actionWaitTime});  // will never show data because of asynchronism
 }
 
 main();

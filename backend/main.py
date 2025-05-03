@@ -41,5 +41,10 @@ async def websocket_commands(websocket: WebSocket):
                     await websocket.send_json({ "title": "actions" , "data": send_actions()})
             case "confirmation":
                 print(data)
+            case "return-data":
+                print(data)
+                write_data_in_file(data["data"])
+            case "error":
+                print(data)
         await websocket.send_text(f"We received: {data}")
 

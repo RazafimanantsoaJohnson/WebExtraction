@@ -25,6 +25,9 @@ async function connectToCS(port, webSocket){
         if(message.title=="cs-state"){
             webSocket.send(JSON.stringify({title:"page-status" ,state:"loaded", url: message.data.url}));
         }
+        if(message.title=="return-data"){
+            webSocket.send(JSON.stringify(message));
+        }
     });``
     webSocket.onmessage=(event)=>{
         receiveWSMessage(event, port);
